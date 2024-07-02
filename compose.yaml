@@ -1,0 +1,18 @@
+services:
+  hardhat:
+    build: ./hardhat
+    ports:
+      - 8545:8545
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - 6379:6379
+
+  web:
+    build: ./client
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+      - hardhat
