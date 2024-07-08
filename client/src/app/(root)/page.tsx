@@ -5,6 +5,8 @@ import AccountDisplay from "@/components/AccountDisplay";
 import PurchaseButton from "@/components/PurchaseButton";
 import Balance from "@/components/BalanceDisplay";
 import AdminLink from "@/components/AdminLink";
+import Link from "next/link";
+import RedeemLink from "@/components/RedeemLink";
 
 const acme = Acme({
   weight: "400",
@@ -20,10 +22,11 @@ export default function Page() {
           <div className="text-3xl">Shoe Store</div>
           <div className="leading-none font-mono">now accepting crypto !</div>
         </div>
-        <Balance/>
+        <Balance />
         <div className="flex gap-2">
-          <AdminLink/>
-        <AccountDisplay/>
+          <AdminLink />
+          <RedeemLink/>
+          <AccountDisplay />
         </div>
       </Card>
       <div className="flex gap-2 w-full">

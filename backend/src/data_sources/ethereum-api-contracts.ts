@@ -1,4 +1,4 @@
-import { abi } from "./functions/ABI";
+import { abi } from "./ABI";
 
 const contracts = {
     ShoeToken:{

@@ -1,0 +1,14 @@
+{
+    "name": "Token name",
+    "description": "Token description",
+    "image": "http:\/\/localhost:3000\/api\/shoes\/{id}.png",
+    "properties": {
+        "name":"Shoe name",
+        "description":"Shoe description",
+        "style":"BARCODE",
+        "colorway":"Shoe / colors",
+        "release-date":"year-month-day",
+        "msrp": 1000,
+        "images":["","",""]
+    }
+}

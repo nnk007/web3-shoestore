@@ -1,62 +1,28 @@
 "use client"
 import Card from "@/components/Card";
-import contracts from "@/contracts";
-import { Shoe } from "@/functions/shoeDB";
 import Link from "next/link";
+import { ShoeCard } from "./Admin_ShoeCard";
+import { mintExamples } from "@/functions/mintExamples";
 import { useEffect, useState } from "react";
-import { useAccount, useReadContract } from "wagmi"
-const { AF1 } = contracts;
+import useOwnableShoeIds from "@/hooks/useOwnableShoeIds";
 export default function Shoes() {
-    const acc = useAccount();
-    const urls = useOwnedShoes(acc.address ?? '0x0');
+    const { ids, loading } = useOwnableShoeIds();
     return (
-        <div className="w-full grid grid-cols-6 auto-rows-[300px] gap-2">
+        <div className="w-full grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 auto-rows-[300px] gap-2">
             {
-                urls.map(url => <ShoeCard key={url} url={url} />)
+                loading ?
+                    <LoadingCard /> :
+                    ids.map(pair => <ShoeCard key={pair.shoeId} shoeId={pair.shoeId} tokenId={pair.tokenId} />)
             }
             <MintShoeCard />
+            <MintExamplesCard />
         </div>
     )
 }
-
-function useOwnedShoes(address:string){
-    console.log("useOwnedShoes");
-    const {data} = useReadContract({abi:AF1.abi,address:AF1.address as `0x${string}`,functionName:"tokensOf",args:[address]}) as {data:string[]};
-    console.log(data);
-    return data ?? [];
-}
-
-
-
-function ShoeCard({ url }: { url: string }) {
-    const [shoe, setShoe] = useState<Shoe | null>();
-    useEffect(() => {
-        (async () => {
-            const req = await fetch(url);
-            const shoe = await req.json() as Shoe;
-            setShoe(shoe);
-        })()
-    }, [])
-    if (!shoe) return null;
-    return (
-        <Card className="flex flex-col justify-between items-center p-2 hover:shadow-lg transition-all">
-            <div className="h-[150px] w-full items-center justify-center flex relative overflow-hidden rounded-md">
-                <img src={shoe.image} className="object-contain h-full"/>
-            </div>
-            <div className="flex flex-col gap-1 w-full">
-                <div>{shoe.name}</div>
-                {/* <div className="font-mono overflow-hidden text-ellipsis">{shoe.description}</div> */}
-                <div>Price: {shoe.price}</div>
-                <button className="px-4 py-2 border rounded-md border-green-400 w-full hover:bg-green-400 transition-colors">List</button>
-            </div>
-        </Card>
-    )
-}
-
 function MintShoeCard() {
     return (
-        <Card className="hover:shadow-lg transition-all">
-            <Link href={"/admin/mint_shoe"} className="group p-2 flex h-full flex-col items-center justify-center">
+        <Card className="shadow-none hover:shadow-md  transition-all">
+            <Link href={"/admin/mint_shoe"} className="group p-2 flex h-full flex-col items-center justify-center gap-2">
                 <div className="flex items-center justify-center p-2 rounded-full border h-10 w-10 group-hover:bg-green-400 transition-colors group-hover:border-white">
                     <span className="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors">
                         add
@@ -64,6 +30,52 @@ function MintShoeCard() {
                 </div>
                 <div>Mint shoe</div>
             </Link>
+        </Card>
+    )
+}
+//used mostly to sync db and chain
+function MintExamplesCard() {
+    const { ids, loading } = useOwnableShoeIds()
+    // if (loading || ids && ids.length > 1) return null;
+    return (
+        <Card className={`shadow-none hover:shadow-md transition-all ${loading ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+            <div className="group p-2 flex h-full flex-col items-center justify-center gap-2" onClick={() => {
+                if (loading) return;
+                mintExamples()
+            }}>
+                <div className="flex items-center justify-center p-2 rounded-full border h-10 w-10 group-hover:bg-green-400 transition-colors group-hover:border-white">
+                    <span className="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors">
+                        add
+                    </span>
+                </div>
+                <div>Mint examples (one-off)</div>
+            </div>
+        </Card>
+    )
+}
+
+function LoadingCard() {
+    const [n, setN] = useState(0);
+    useEffect(() => {
+        const i = setInterval(() => {
+            setN(_n => {
+                return _n > 2 ? 0 : _n + 1;
+            })
+        }, 1000);
+        return () => {
+            clearInterval(i);
+        }
+    }, [])
+    return (
+        <Card className="hover:shadow-lg transition-all cursor-wait">
+            <div className="group p-2 flex h-full flex-col items-center justify-center gap-2">
+                <div className="flex items-center justify-center p-2 rounded-full border h-10 w-10 group-hover:bg-blue-400 transition-colors group-hover:border-white">
+                    <span className="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors animate-spin">
+                        sync
+                    </span>
+                </div>
+                <div className="font-mono">Loading shoes.{'.'.repeat(n)}</div>
+            </div>
         </Card>
     )
 }

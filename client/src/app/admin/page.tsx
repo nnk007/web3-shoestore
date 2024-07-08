@@ -1,10 +1,10 @@
 "use client"
 import Card from "@/components/Card";
-import React, { ReactElement, RefObject, createRef, useEffect, useRef, useState } from "react";
+import React, { ReactElement, RefObject, createRef, useEffect, useState } from "react";
 import Shoes from "./shoes";
 import Link from "next/link";
 import { useAccount } from "wagmi";
-import { useWeb3Modal } from "@web3modal/wagmi/react";
+import { useRouter } from "next/navigation";
 
 enum Category {
     SHOES=0,
@@ -14,16 +14,16 @@ enum Category {
 export default function Page() {
     const [activeCategory,setAC] = useState<Category>(0);
     const {status} = useAccount();
+    const router = useRouter();
     console.log(status);
-    const {open} = useWeb3Modal()
     if(status=="disconnected"){
-        open()
+        router.push("/");
         return null;
     }
     return (
         <div className="flex flex-col items-center justify-center p-2 gap-2">
             <div className="flex gap-2 justify-between w-full">
-                <Card className="">
+                <Card className="shadow-none hover:shadow-md transition-all">
                     <Link href="/" className="flex items-center justify-center px-4 py-2 gap-2 uppercase ">
                     <span className="material-symbols-outlined">
                         arrow_back
@@ -39,16 +39,30 @@ export default function Page() {
                 </Card>
                 <div></div>
             </div>
-            {activeCategory==Category.SHOES ? <Shoes/> : <div></div>}
+            {activeCategory == Category.SHOES ? <Shoes /> : <div></div>}
         </div>
     )
 }
+
+
+
+
+
+
 
 function Selector({ children, className }: { children: ReactElement[], className?: string }) {
     const [underline,setUnderline] = useState({w:0,top:-1000,left:0});
     const [activeChildI,setACI] = useState(0);
     const [c,setC] = useState<ReactElement[]>([]);
     const [cRefs,setCRefs] = useState<RefObject<HTMLDivElement>[]>([]);
+    const [lastResizeTimestamp,setLRT] = useState(0);
+    useEffect(()=>{
+        const listener = ()=>{
+            setLRT(Date.now())
+        }
+        window.addEventListener("resize",listener);
+        return ()=>window.removeEventListener("resize",listener);
+    },[])
     useEffect(() => {
         const cRefs:RefObject<HTMLDivElement>[] = [];
         const c = React.Children.map(children, (child,i) => {
@@ -66,7 +80,7 @@ function Selector({ children, className }: { children: ReactElement[], className
         if(!el) return;
         const cRect = el.getBoundingClientRect()!;
         setUnderline({w:cRect.width,left:cRect.left,top:cRect.bottom})
-    },[c,activeChildI])
+    },[c,activeChildI,cRefs,lastResizeTimestamp])
 
     return (
         <div className={`flex `+className ?? ""}>

@@ -1,0 +1,90 @@
+schema {
+    query: Query,
+    mutation:Mutation
+}
+
+type Query {
+    shoe(id:String!):Shoe,
+    token(id:Int!):ShoeToken,
+    shoesByToken(id:Int!):[Int!]!,
+    tokensByShoe(id:Int!):[Int!]!,
+    pairs:[ShoeTokenPair!]!,
+}
+scalar FullDate @specifiedBy(url:"https://datatracker.ietf.org/doc/html/rfc3339#section-5.6")
+
+type ShoeTokenPair {
+    shoeID:Shoe!,
+    tokenID:ShoeToken!
+}
+
+type Shoe {
+    id:Int!
+    style:String!,
+    name:String!,
+    description:String!,
+    colorway:String!,
+    msrp:Float!,
+    releaseDate:FullDate!,
+    images:[String!]!,
+}
+
+interface Token {
+    id:Int!,
+    uri:String!
+    metadata:TokenMetadata
+}
+
+interface TokenMetadata {
+    name:String!,
+    description:String!,
+    image:String!,
+}
+
+type ShoeToken implements Token {
+    id:Int!,
+    uri:String!,
+    metadata:ShoeTokenMetadata!
+
+}
+type ShoeTokenMetadata implements TokenMetadata {
+    name:String!,
+    description:String!,
+    image:String!,
+    properties:Shoe!
+}
+enum OrderStateEnum {
+    NEW,
+    PAYMENT_RECEIVED,
+    PROCESSING,
+    DISPATCHED,
+    RECEIVED
+}
+type Order {
+    id:ID!,
+    state:OrderStateEnum!,
+    tx:String!,
+    shoeID:String!
+}
+
+type Mutation {
+    setShoe(shoe:ShoeInput!):Shoe,
+    setShoeTokenMetadata(id:Int!,metadata:ShoeTokenMetadataInput!):ShoeTokenMetadata,
+    createOrder(shoeID:String!):Order
+    saveShoeTokenPair(shoeID:Int!,tokenID:Int!):ShoeTokenPair
+}
+
+input ShoeInput {
+    id:Int!
+    style:String!,
+    name:String!,
+    description:String!,
+    colorway:String!,
+    msrp:Float!,
+    releaseDate:FullDate!,
+    images:[String!]!,
+}
+input ShoeTokenMetadataInput {
+    name:String!,
+    description:String!,
+    image:String!,
+}
